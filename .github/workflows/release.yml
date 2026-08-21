@@ -1,0 +1,124 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The runner release the formula should point at, for example v0.1.0
+        required: true
+        type: string
+
+concurrency:
+  group: formula
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  formula:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Write the formula
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "the version must be vMAJOR.MINOR.PATCH with an optional prerelease suffix; got '$VERSION'" >&2
+            exit 1
+          fi
+
+          number="${VERSION#v}"
+          download="https://github.com/usenorn/runner/releases/download/$VERSION"
+
+          gh release download "$VERSION" --repo usenorn/runner \
+            --pattern checksums.txt --output checksums.txt --clobber
+
+          digest() {
+            local found
+            found=$(awk -v file="norn-runner_${number}_$1.tar.gz" '$2 == file { print $1 }' checksums.txt)
+            if [ -z "$found" ]; then
+              echo "the $VERSION checksums name no $1 archive" >&2
+              exit 1
+            fi
+            printf '%s' "$found"
+          }
+
+          mkdir -p Formula
+          cat > Formula/norn-runner.rb <<FORMULA
+          class NornRunner < Formula
+            desc "Run issues delegated in Norn on your own machine"
+            homepage "https://norn.so"
+            version "$number"
+            license "AGPL-3.0-only"
+
+            on_macos do
+              on_arm do
+                url "$download/norn-runner_${number}_darwin_arm64.tar.gz"
+                sha256 "$(digest darwin_arm64)"
+              end
+
+              on_intel do
+                url "$download/norn-runner_${number}_darwin_amd64.tar.gz"
+                sha256 "$(digest darwin_amd64)"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "$download/norn-runner_${number}_linux_arm64.tar.gz"
+                sha256 "$(digest linux_arm64)"
+              end
+
+              on_intel do
+                url "$download/norn-runner_${number}_linux_amd64.tar.gz"
+                sha256 "$(digest linux_amd64)"
+              end
+            end
+
+            def install
+              bin.install "norn"
+            end
+
+            def caveats
+              <<~EOS
+                Register the runner with this machine's service manager, then bind it to an agent:
+
+                  norn runner install
+                  norn runner connect --token nrn_…
+              EOS
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/norn --version")
+            end
+          end
+          FORMULA
+
+          rm -f checksums.txt
+
+      - name: Commit
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          git add Formula/norn-runner.rb
+
+          if git diff --cached --quiet; then
+            echo "the formula already points at $VERSION"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(formula): norn-runner $VERSION"
+          git push
