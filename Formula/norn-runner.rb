@@ -1,30 +1,30 @@
 class NornRunner < Formula
   desc "Run issues delegated in Norn on your own machine"
   homepage "https://norn.so"
-  version "0.4.1"
+  version "0.5.0"
   license "AGPL-3.0-only"
 
   on_macos do
     on_arm do
-      url "https://github.com/usenorn/runner/releases/download/v0.4.1/norn-runner_0.4.1_darwin_arm64.tar.gz"
-      sha256 "8127c3f3339b3f1b8a38514c9dd83fc78ba67a33887abad25e6dca236a473132"
+      url "https://github.com/usenorn/runner/releases/download/v0.5.0/norn-runner_0.5.0_darwin_arm64.tar.gz"
+      sha256 "279eaf2b58d83424c1952628a96d2e37ec42ad5223535756be3d5029b565b19f"
     end
 
     on_intel do
-      url "https://github.com/usenorn/runner/releases/download/v0.4.1/norn-runner_0.4.1_darwin_amd64.tar.gz"
-      sha256 "e4558fee4f10dbbae73851e6f665b27daaf8ffd36f9f33dedfe56eaeb77cd430"
+      url "https://github.com/usenorn/runner/releases/download/v0.5.0/norn-runner_0.5.0_darwin_amd64.tar.gz"
+      sha256 "ec34b3275bc7dfd2a1ba2823825d0d0b68ade48250c53a90373f5461115a2db6"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/usenorn/runner/releases/download/v0.4.1/norn-runner_0.4.1_linux_arm64.tar.gz"
-      sha256 "2b480e60d2bb048700c10a144fd8d3e4b7abe4463f13ea6187ce746ff18c2b2c"
+      url "https://github.com/usenorn/runner/releases/download/v0.5.0/norn-runner_0.5.0_linux_arm64.tar.gz"
+      sha256 "e3192be9df11fd87be0b2810341a16f7217f4c52872dd57b6773c8e69863ddc0"
     end
 
     on_intel do
-      url "https://github.com/usenorn/runner/releases/download/v0.4.1/norn-runner_0.4.1_linux_amd64.tar.gz"
-      sha256 "aabd18d5f404b18eb43d47fcdcc827f8a61f6be7b435b5953b972dcffdc5fcce"
+      url "https://github.com/usenorn/runner/releases/download/v0.5.0/norn-runner_0.5.0_linux_amd64.tar.gz"
+      sha256 "26c3b205e1a1c2289dcf9c1ef2e9fbe2d6989f9fec00ad2defd3bd510bcad19b"
     end
   end
 
